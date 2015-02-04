@@ -134,10 +134,13 @@ install -m 755 bin/barbican-db-manage.py %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_sysconfdir}/init
 install -m 644 etc/init/barbican-api.conf %{buildroot}%{_sysconfdir}/init
 install -m 644 etc/init/barbican-worker.conf %{buildroot}%{_sysconfdir}/init
+install -m 644 etc/init/barbican-keystone-listener.conf %{buildroot}%{_sysconfdir}/init
 %else
 # systemd services
 install -p -D -m 644 %{SOURCE1} %{buildroot}%{_unitdir}/openstack-barbican-api.service
 install -p -D -m 644 %{SOURCE1} %{buildroot}%{_unitdir}/openstack-barbican-worker.service
+# TODO
+#install -p -D -m 644 %{SOURCE1} %{buildroot}%{_unitdir}/openstack-barbican-keystone-listener.service
 %endif
 
 # install log rotation
