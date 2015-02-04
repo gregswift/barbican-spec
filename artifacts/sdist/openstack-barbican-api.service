@@ -1,0 +1,13 @@
+[Unit]
+Description=Openstack Barbican API server
+After=syslog.target network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/barbican/barbican.sh start
+ExecStop=/usr/bin/barbican/barbican.sh stop
+User=barbican
+Group=barbican
+
+[Install]
+WantedBy=multi-user.target

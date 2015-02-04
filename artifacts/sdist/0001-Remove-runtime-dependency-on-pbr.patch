@@ -1,0 +1,54 @@
+From b3521b66475d6203b31814a811bc9af8a2193463 Mon Sep 17 00:00:00 2001
+From: Abhishek Koneru <akoneru@redhat.com>
+Date: Tue, 11 Nov 2014 08:36:26 -0500
+Subject: [PATCH] Remove runtime dependency on pbr
+
+The version.py file has been modified to remove the dependency
+on the pbr module.
+
+Change-Id: Iab9391e56cb5af522798bfddb6ea5a32e4f1e49d
+---
+ barbican/version.py | 28 ++++++++++++++++++++++++++--
+ 1 file changed, 26 insertions(+), 2 deletions(-)
+
+diff --git a/barbican/version.py b/barbican/version.py
+index 666e38c150047afa572eda71d9c11094763bc794..f44e3b6fac4710460699e354aa84c7efa8444a7e 100644
+--- a/barbican/version.py
++++ b/barbican/version.py
+@@ -13,7 +13,31 @@
+ #    License for the specific language governing permissions and limitations
+ #    under the License.
+ 
+-import pbr.version
+ 
+-version_info = pbr.version.VersionInfo('barbican')
++BARBICAN_VENDOR = "OpenStack Foundation"
++BARBICAN_PRODUCT = "OpenStack Barbican"
++BARBICAN_PACKAGE = None  # OS distro package version suffix
++
++loaded = False
++
++class VersionInfo(object):
++    release = "REDHATBARBICANRELEASE"
++    version = "REDHATBARBICANVERSION"
++
++    def version_string(self):
++        return self.version
++
++    def cached_version_string(self):
++        return self.version
++
++    def release_string(self):
++        return self.release
++
++    def canonical_version_string(self):
++        return self.version
++
++    def version_string_with_vcs(self):
++        return self.release
++
++version_info = VersionInfo()
+ __version__ = version_info.release_string()
+-- 
+1.8.5.3
+
