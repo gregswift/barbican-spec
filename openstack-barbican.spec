@@ -125,6 +125,9 @@ mkdir -p %{buildroot}%{_localstatedir}/l{ib,og}/barbican
 mkdir -p %{buildroot}%{_bindir}
 install -m 644 etc/barbican/policy.json %{buildroot}%{_sysconfdir}/barbican/
 install -m 644 etc/barbican/barbican* %{buildroot}%{_sysconfdir}/barbican/
+install -m 755 bin/barbican-worker.py %{buildroot}%{_bindir}
+install -m 755 bin/barbican-keystone-listener.py %{buildroot}%{_bindir}
+install -m 755 bin/barbican-db-manage.py %{buildroot}%{_bindir}
 
 %if 0%{?el6}
 # upstart services
@@ -159,7 +162,6 @@ rm -rf %{buildroot}
 %defattr(-,root,root)
 %dir %{_localstatedir}/log/barbican
 %{_sysconfdir}/logrotate.d/barbican-api
-%attr(0755,root,root) %{_bindir}/barbican.sh
 %attr(0755,root,root) %{_bindir}/barbican-db-manage.py
 %config(noreplace) %{_sysconfdir}/barbican/*
 %if 0%{?el6}
