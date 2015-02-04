@@ -1,11 +1,8 @@
 %global release_name kilo
 %global release_number 1
 
-%{!?__initrddir: %define __initrddir /etc/rc.d/init.d}
-%{!?_unitdir: %define _unitdir /usr/lib/systemd/system}
-
 %{?milestone: %define version_milestone .%{milestone}}
-%{?release_number %define release_version %{release_name}-%{release_number}
+%{?release_number: %define release_version %{release_name}-%{release_number}}
 
 Name:    openstack-barbican
 Version: 2015.1%{?version_milestone}
