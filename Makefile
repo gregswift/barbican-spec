@@ -14,20 +14,26 @@ RPMDIR = ${ARTIFACTDIR}/rpms
 DEBBUILDDIR = ${BUILDDIR}/deb-build
 DEBDIR = ${ARTIFACTDIR}/debs
 
+# If this is a PBR project this will pull the dev version
+ifeq ($(origin MILESTONE), undefined)
+  ifneq ("$(wildcard setup.py)","")
+MILESTONE := $(shell python setup.py -V | awk -F. '{print $$NF}')
+  endif
+endif
+
+ifneq ($(origin MILESTONE), undefined)
+MILESTONE_MACRO := --define "milestone ${MILESTONE}"
+endif
+
 # base rpmbuild command that utilizes the local buildroot
 # not using the above variables on purpose.
 # if you can make it work, PRs are welcome!
-BASE_RPMBUILD = rpmbuild --define "_topdir %(pwd)/build" \
+RPMBUILD = rpmbuild ${MILESTONE_MACRO} \
+    --define "_topdir %(pwd)/build" \
 	--define "_sourcedir  %(pwd)/artifacts/sdist" \
 	--define "_builddir %{_topdir}/rpm-build" \
 	--define "_srcrpmdir %{_rpmdir}" \
 	--define "_rpmdir %(pwd)/artifacts/rpms"
-
-ifdef MILESTONE
-RPMBUILD = ${BASE_RPMBUILD} --define "milestone ${MILESTONE}"
-else
-RPMBUILD = ${BASE_RPMBUILD}
-endif
 
 # Allow which python to be overridden at the environment level
 PYTHON := $(shell which python)
@@ -35,19 +41,21 @@ PYTHON := $(shell which python)
 ifneq ("$(wildcard setup.py)","")
 GET_SDIST = ${PYTHON} setup.py sdist -d "${SDISTDIR}"
 else
-  ifdef MILESTONE
-GET_SDIST = spectool -g -C ${SDISTDIR} --define "milestone ${MILESTONE}" ${PACKAGE}.spec
-  else
-GET_SDIST = spectool -g -C ${SDISTDIR} ${PACKAGE}.spec
-  endif
+GET_SDIST = spectool -g -C ${SDISTDIR} ${MILESTONE_MACRO} ${PACKAGE}.spec
 endif
 
 all: rpms
+
+milestone:
+	@echo ${MILESTONE}
 
 clean:
 	rm -rf ${BUILDDIR}/ *~
 	rm -rf *.egg-info
 	find . -name '*.pyc' -exec rm -f {} \;
+
+clean_sdist:
+	rm -rf ${SDISTDIR}/
 
 clean_all: clean
 	rm -rf ${ARTIFACTDIR}/

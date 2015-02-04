@@ -1,21 +1,21 @@
-%global release_name juno
+%global release_name kilo
+%global release_number 1
 
 %{!?__initrddir: %define __initrddir /etc/rc.d/init.d}
 %{!?_unitdir: %define _unitdir /usr/lib/systemd/system}
 
-define version 2015.1
 %{?milestone: %define version_milestone .%{milestone}}
-%{?milestone: %define release_milestone -%{milestone}}
+%{?release_number %define release_version %{release_name}-%{release_number}
 
 Name:    openstack-barbican
-Version: %{version}%{?version_milestone}
+Version: 2015.1%{?version_milestone}
 Release: 1%{?dist}
 Summary: OpenStack Barbican Key Manager
 
 Group:   Python WSGI Application
 License: ASL 2.0
 Url:     http://github.com/cloudkeep/barbican
-Source0: https://launchpad.net/barbican/%{release_name}/%{release_name}%{release_milestone}/+download/barbican-%{version}.tar.gz
+Source0: https://launchpad.net/barbican/%{release_name}/%{release_version}/+download/barbican-%{version}.tar.gz
 
 # TODO: Submit PR to add these to upstream
 Source1: openstack-barbican-api.service
