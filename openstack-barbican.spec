@@ -1,8 +1,18 @@
 %global release_name kilo
-%global release_number 1
 
+# We optionally support both release_number and milestone
+# as definiable build paramters.  This is useful for non-stable
+# building.
+# release_number: used for primary milestone release candidates
+#   If populated will auto populate the milestone macro and
+# milestone: Used for primary milestone release candidates and
+#   for incremental development builds.
+%{?release_number: %define milestone 0b%{release_number}}
 %{?milestone: %define version_milestone .%{milestone}}
+
+# Using the above we generate the macro for the Source URL
 %{?release_number: %define release_version %{release_name}-%{release_number}}
+%{!?release_version: %define release_version %{release_name}}
 
 Name:    openstack-barbican
 Version: 2015.1%{?version_milestone}
@@ -123,11 +133,15 @@ PBR_VERSION=%{version}%{version_milestone} %{__python} setup.py install -O1 --ro
 mkdir -p %{buildroot}%{_sysconfdir}/barbican
 mkdir -p %{buildroot}%{_localstatedir}/l{ib,og}/barbican
 mkdir -p %{buildroot}%{_bindir}
+
 install -m 644 etc/barbican/policy.json %{buildroot}%{_sysconfdir}/barbican/
 install -m 644 etc/barbican/barbican* %{buildroot}%{_sysconfdir}/barbican/
 install -m 755 bin/barbican-worker.py %{buildroot}%{_bindir}
 install -m 755 bin/barbican-keystone-listener.py %{buildroot}%{_bindir}
 install -m 755 bin/barbican-db-manage.py %{buildroot}%{_bindir}
+
+# Remove the bash script since its more dev focused
+rm -f %{buildroot}%{_bindir}/barbican.sh
 
 %if 0%{?el6}
 # upstart services

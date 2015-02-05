@@ -14,6 +14,10 @@ RPMDIR = ${ARTIFACTDIR}/rpms
 DEBBUILDDIR = ${BUILDDIR}/deb-build
 DEBDIR = ${ARTIFACTDIR}/debs
 
+ifneq ($(origin RELEASE_NUMBER), undefined)
+RELEASE_NUMBER_MACRO := --define "release_number ${RELEASE_NUMBER}"
+endif
+
 # If this is a PBR project this will pull the dev version
 ifeq ($(origin MILESTONE), undefined)
   ifneq ("$(wildcard setup.py)","")
@@ -28,7 +32,7 @@ endif
 # base rpmbuild command that utilizes the local buildroot
 # not using the above variables on purpose.
 # if you can make it work, PRs are welcome!
-RPMBUILD = rpmbuild ${MILESTONE_MACRO} \
+RPMBUILD = rpmbuild ${MILESTONE_MACRO} ${RELEASE_NUMBER_MACRO} \
     --define "_topdir %(pwd)/build" \
 	--define "_sourcedir  %(pwd)/artifacts/sdist" \
 	--define "_builddir %{_topdir}/rpm-build" \
@@ -41,13 +45,10 @@ PYTHON := $(shell which python)
 ifneq ("$(wildcard setup.py)","")
 GET_SDIST = ${PYTHON} setup.py sdist -d "${SDISTDIR}"
 else
-GET_SDIST = spectool -g -C ${SDISTDIR} ${MILESTONE_MACRO} ${PACKAGE}.spec
+GET_SDIST = spectool -g -C ${SDISTDIR} ${MILESTONE_MACRO} ${RELEASE_NUMBER_MACRO} ${PACKAGE}.spec
 endif
 
 all: rpms
-
-milestone:
-	@echo ${MILESTONE}
 
 clean:
 	rm -rf ${BUILDDIR}/ *~
