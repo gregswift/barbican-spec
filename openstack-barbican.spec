@@ -1,4 +1,5 @@
 %global release_name kilo
+#%global release_number 2
 
 # We optionally support both release_number and milestone
 # as definiable build paramters.  This is useful for non-stable
@@ -177,6 +178,8 @@ rm -rf %{buildroot}
 
 %files -n openstack-barbican
 %defattr(-,root,root)
+%doc LICENSE
+%dir %{_sysconfdir}/barbican
 %dir %{_localstatedir}/log/barbican
 %{_sysconfdir}/logrotate.d/barbican-api
 %attr(0755,root,root) %{_bindir}/barbican-db-manage.py
@@ -188,12 +191,15 @@ rm -rf %{buildroot}
 %endif
 
 %files -n python-barbican
+%doc LICENSE
 %defattr(-,barbican,barbican)
 %{python_sitelib}/*
 %dir %{_localstatedir}/lib/barbican
 
 %files -n openstack-barbican-worker
+%doc LICENSE
 %defattr(-,root,root)
+%dir %{_sysconfdir}/barbican
 %dir %{_localstatedir}/log/barbican
 #%{_sysconfdir}/logrotate.d/barbican-worker
 %attr(0755,root,root) %{_bindir}/barbican-worker.py
@@ -205,6 +211,7 @@ rm -rf %{buildroot}
 %endif
 
 %files -n openstack-barbican-keystone-listener
+%doc LICENSE
 %attr(0755,root,root) %{_bindir}/barbican-keystone-listener.py
 %if 0%{?el6}
 %config(noreplace) %{_sysconfdir}/init/barbican-keystone-listener.conf
