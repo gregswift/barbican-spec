@@ -15,14 +15,14 @@
 %{!?release_version: %define release_version %{release_name}}
 
 Name:    openstack-barbican
-Version: 2015.1%{?version_milestone}
-Release: 1%{?dist}
+Version: 2015.1
+Release: 1%{?version_milestone}%{?dist}
 Summary: OpenStack Barbican Key Manager
 
 Group:   Python WSGI Application
 License: ASL 2.0
 Url:     http://github.com/cloudkeep/barbican
-Source0: https://launchpad.net/barbican/%{release_name}/%{release_version}/+download/barbican-%{version}.tar.gz
+Source0: https://launchpad.net/barbican/%{release_name}/%{release_version}/+download/barbican-%{version}%{?version_milestone}.tar.gz
 
 # TODO: Submit PR to add these to upstream
 Source1: openstack-barbican-api.service
@@ -106,7 +106,7 @@ listener daemon.
 
 
 %prep
-%setup -q -n barbican-%{version}
+%setup -q -n barbican-%{version}%{version_milestone}
 
 %patch0001 -p1
 %patch0002 -p1
