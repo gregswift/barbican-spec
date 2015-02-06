@@ -20,7 +20,7 @@ Version: 2015.1
 Release: 1%{?version_milestone}%{?dist}
 Summary: OpenStack Barbican Key Manager
 
-Group:   Python WSGI Application
+Group:   Applications/System
 License: ASL 2.0
 Url:     http://github.com/cloudkeep/barbican
 Source0: https://launchpad.net/barbican/%{release_name}/%{release_version}/+download/barbican-%{version}%{?version_milestone}.tar.gz
@@ -28,6 +28,7 @@ Source0: https://launchpad.net/barbican/%{release_name}/%{release_version}/+down
 # TODO: Submit PR to add these to upstream
 Source1: openstack-barbican-api.service
 Source2: openstack-barbican-worker.service
+Source3: openstack-barbican-keystone-listener.service
 
 # TODO: Submit PR to add these to upstream
 # patches_base=2014.2
@@ -154,8 +155,7 @@ install -m 644 etc/init/barbican-keystone-listener.conf %{buildroot}%{_sysconfdi
 # systemd services
 install -p -D -m 644 %{SOURCE1} %{buildroot}%{_unitdir}/openstack-barbican-api.service
 install -p -D -m 644 %{SOURCE1} %{buildroot}%{_unitdir}/openstack-barbican-worker.service
-# TODO
-#install -p -D -m 644 %{SOURCE1} %{buildroot}%{_unitdir}/openstack-barbican-keystone-listener.service
+install -p -D -m 644 %{SOURCE1} %{buildroot}%{_unitdir}/openstack-barbican-keystone-listener.service
 %endif
 
 # install log rotation
@@ -201,7 +201,6 @@ rm -rf %{buildroot}
 %defattr(-,root,root)
 %dir %{_sysconfdir}/barbican
 %dir %{_localstatedir}/log/barbican
-#%{_sysconfdir}/logrotate.d/barbican-worker
 %attr(0755,root,root) %{_bindir}/barbican-worker.py
 %config(noreplace) %{_sysconfdir}/barbican/barbican-api.conf
 %if 0%{?el6}
@@ -216,6 +215,7 @@ rm -rf %{buildroot}
 %if 0%{?el6}
 %config(noreplace) %{_sysconfdir}/init/barbican-keystone-listener.conf
 %else
+%{_unitdir}/openstack-barbican-keystone-listener.service
 %endif
 
 %post -n openstack-barbican
@@ -241,7 +241,7 @@ rm -rf %{buildroot}
 %if 0%{?el6}
 /sbin/initctl reload-configuration
 %else
-#%systemd_post openstack-barbican-keystone-listener.service
+%systemd_post openstack-barbican-keystone-listener.service
 /bin/systemctl daemon-reload
 %endif
 
@@ -273,7 +273,7 @@ if [ $1 -eq 0 ] ; then
     /sbin/stop barbican-keystone-listener >/dev/null 2>&1 || :
 fi
 %else
-#%systemd_preun openstack-barbican-keystone-listener.service
+%systemd_preun openstack-barbican-keystone-listener.service
 %endif
 
 
@@ -292,7 +292,7 @@ fi
 %postun -n openstack-barbican-keystone-listener
 %if 0%{?rhel} != 6
 # Restarting on EL6 is left as a task to the admin
-#%systemd_postun_with_restart openstack-barbican-keystone-listender.service
+%systemd_postun_with_restart openstack-barbican-keystone-listender.service
 %endif
 
 

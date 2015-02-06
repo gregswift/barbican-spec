@@ -4,7 +4,7 @@ After=syslog.target network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/barbican-worker
+ExecStart=/usr/bin/barbican-keystone-listener.py
 User=barbican
 Group=barbican
 
