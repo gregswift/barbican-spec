@@ -1,5 +1,5 @@
 %global release_name kilo
-#%global release_number 2
+%global release_number 2
 
 # We optionally support both release_number and milestone
 # as definiable build paramters.  This is useful for non-stable
