@@ -1,5 +1,6 @@
-%global release_name kilo
-%global release_number 2
+%global release_name juno
+%global release_version 2014.2
+#global release_number 2
 
 # We optionally support both release_number and milestone
 # as definiable build paramters.  This is useful for non-stable
@@ -16,7 +17,7 @@
 %{?release_version: %define release_version %{release_name}}
 
 Name:    openstack-barbican
-Version: 2015.1
+Version: 2014.2
 Release: 1%{?version_milestone}%{?dist}
 Summary: OpenStack Barbican Key Manager
 
@@ -28,7 +29,9 @@ Source0: https://launchpad.net/barbican/%{release_name}/%{release_version}/+down
 # TODO: Submit PR to add these to upstream
 Source1: openstack-barbican-api.service
 Source2: openstack-barbican-worker.service
+%if %{release_name} != juno
 Source3: openstack-barbican-keystone-listener.service
+%endif
 
 # TODO: Submit PR to add these to upstream
 # patches_base=2014.2
@@ -98,6 +101,7 @@ This package contains scripts to start a barbican worker
 on a worker node. It currently conflicts with the main package.
 
 
+%if "%{release_name}" != "juno"
 %package -n openstack-barbican-keystone-listener
 Summary: Barbican Keystone Listener daemon
 Requires: python-barbican
@@ -105,7 +109,7 @@ Requires: python-barbican
 %description -n openstack-barbican-keystone-listener
 This package contains scripts to start a barbican keystone
 listener daemon.
-
+%endif
 
 %prep
 %setup -q -n barbican-%{version}%{?version_milestone}
@@ -139,8 +143,10 @@ mkdir -p %{buildroot}%{_bindir}
 install -m 644 etc/barbican/policy.json %{buildroot}%{_sysconfdir}/barbican/
 install -m 644 etc/barbican/barbican* %{buildroot}%{_sysconfdir}/barbican/
 install -m 755 bin/barbican-worker.py %{buildroot}%{_bindir}
-install -m 755 bin/barbican-keystone-listener.py %{buildroot}%{_bindir}
 install -m 755 bin/barbican-db-manage.py %{buildroot}%{_bindir}
+%if "%{release_name}" != "juno"
+install -m 755 bin/barbican-keystone-listener.py %{buildroot}%{_bindir}
+%endif
 
 # Remove the bash script since its more dev focused
 rm -f %{buildroot}%{_bindir}/barbican.sh
@@ -150,12 +156,16 @@ rm -f %{buildroot}%{_bindir}/barbican.sh
 mkdir -p %{buildroot}%{_sysconfdir}/init
 install -m 644 etc/init/barbican-api.conf %{buildroot}%{_sysconfdir}/init
 install -m 644 etc/init/barbican-worker.conf %{buildroot}%{_sysconfdir}/init
+%if "%{release_name}" != "juno"
 install -m 644 etc/init/barbican-keystone-listener.conf %{buildroot}%{_sysconfdir}/init
+%endif
 %else
 # systemd services
 install -p -D -m 644 %{SOURCE1} %{buildroot}%{_unitdir}/openstack-barbican-api.service
 install -p -D -m 644 %{SOURCE1} %{buildroot}%{_unitdir}/openstack-barbican-worker.service
+%if "%{release_name}" != "juno"
 install -p -D -m 644 %{SOURCE1} %{buildroot}%{_unitdir}/openstack-barbican-keystone-listener.service
+%endif
 %endif
 
 # install log rotation
@@ -209,6 +219,7 @@ rm -rf %{buildroot}
 %{_unitdir}/openstack-barbican-worker.service
 %endif
 
+%if "%{release_name}" != "juno"
 %files -n openstack-barbican-keystone-listener
 %doc LICENSE
 %attr(0755,root,root) %{_bindir}/barbican-keystone-listener.py
@@ -216,6 +227,7 @@ rm -rf %{buildroot}
 %config(noreplace) %{_sysconfdir}/init/barbican-keystone-listener.conf
 %else
 %{_unitdir}/openstack-barbican-keystone-listener.service
+%endif
 %endif
 
 %post -n openstack-barbican
@@ -236,6 +248,7 @@ rm -rf %{buildroot}
 /bin/systemctl daemon-reload
 %endif
 
+%if "%{release_name}" != "juno"
 %post -n openstack-barbican-keystone-listener
 # ensure that init system recognizes the service
 %if 0%{?el6}
@@ -244,7 +257,7 @@ rm -rf %{buildroot}
 %systemd_post openstack-barbican-keystone-listener.service
 /bin/systemctl daemon-reload
 %endif
-
+%endif
 
 %preun -n openstack-barbican
 %if 0%{?el6}
@@ -266,6 +279,7 @@ fi
 %systemd_preun openstack-barbican-worker.service
 %endif
 
+%if "%{release_name}" != "juno"
 %preun -n openstack-barbican-keystone-listener
 %if 0%{?el6}
 if [ $1 -eq 0 ] ; then
@@ -275,7 +289,7 @@ fi
 %else
 %systemd_preun openstack-barbican-keystone-listener.service
 %endif
-
+%endif
 
 %postun -n openstack-barbican
 %if 0%{?rhel} != 6
@@ -289,12 +303,13 @@ fi
 %systemd_postun_with_restart openstack-barbican-worker.service
 %endif
 
+%if "%{release_name}" != "juno"
 %postun -n openstack-barbican-keystone-listener
 %if 0%{?rhel} != 6
 # Restarting on EL6 is left as a task to the admin
 %systemd_postun_with_restart openstack-barbican-keystone-listender.service
 %endif
-
+%endif
 
 %changelog
 
