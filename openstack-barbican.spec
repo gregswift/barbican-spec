@@ -13,7 +13,7 @@
 
 # Using the above we generate the macro for the Source URL
 %{?release_number: %define release_version %{release_name}-%{release_number}}
-%{!?release_version: %define release_version %{release_name}}
+%{?release_version: %define release_version %{release_name}}
 
 Name:    openstack-barbican
 Version: 2015.1
@@ -108,7 +108,7 @@ listener daemon.
 
 
 %prep
-%setup -q -n barbican-%{version}%{version_milestone}
+%setup -q -n barbican-%{version}%{?version_milestone}
 
 %patch0001 -p1
 %patch0002 -p1
@@ -131,7 +131,7 @@ rm -rf {test-,}requirements.txt tools/{pip,test}-requires
 %{__python} setup.py build
 
 %install
-PBR_VERSION=%{version}%{version_milestone} %{__python} setup.py install -O1 --root %{buildroot}
+PBR_VERSION=%{version}%{?version_milestone} %{__python} setup.py install -O1 --root %{buildroot}
 mkdir -p %{buildroot}%{_sysconfdir}/barbican
 mkdir -p %{buildroot}%{_localstatedir}/l{ib,og}/barbican
 mkdir -p %{buildroot}%{_bindir}
