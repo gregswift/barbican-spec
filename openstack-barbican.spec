@@ -1,3 +1,9 @@
+%if 0%{?rhel} && 0%{?rhel} <= 6
+%{!?__python2:        %global __python2 /usr/bin/python2}
+%{!?python2_sitelib:  %global python2_sitelib %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%{!?python2_sitearch: %global python2_sitearch %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
+%endif
+
 %global release_name juno
 %global release_version 2014.2
 #global release_number 2
@@ -18,12 +24,12 @@
 
 Name:    openstack-barbican
 Version: 2014.2
-Release: 1%{?version_milestone}%{?dist}
+Release: 2%{?version_milestone}%{?dist}
 Summary: OpenStack Barbican Key Manager
 
 Group:   Applications/System
 License: ASL 2.0
-Url:     http://github.com/cloudkeep/barbican
+Url:     https://github.com/openstack/barbican
 Source0: https://launchpad.net/barbican/%{release_name}/%{release_version}/+download/barbican-%{version}%{?version_milestone}.tar.gz
 
 # TODO: Submit PR to add these to upstream
@@ -33,15 +39,18 @@ Source2: openstack-barbican-worker.service
 Source3: openstack-barbican-keystone-listener.service
 %endif
 
+%if %{release_name} == juno
 # TODO: Submit PR to add these to upstream
 # patches_base=2014.2
-#
 Patch0001: 0001-Remove-runtime-dependency-on-pbr.patch
 Patch0002: 0002-Removed-pyenv-references-in-barbican.sh.patch
+%endif
 
 BuildArch: noarch
 BuildRequires: python2-devel
 BuildRequires: python-setuptools
+BuildRequires: python-oslo-config
+BuildRequires: python-oslo-messaging
 
 Requires(pre): shadow-utils
 Requires: python-barbican
@@ -114,8 +123,10 @@ listener daemon.
 %prep
 %setup -q -n barbican-%{version}%{?version_milestone}
 
+%if %{release_name} == juno
 %patch0001 -p1
 %patch0002 -p1
+%endif
 
 rm -rf barbican.egg-info
 
@@ -132,10 +143,10 @@ sed -i 's/oslosphinx/oslo.sphinx/' doc/source/conf.py
 rm -rf {test-,}requirements.txt tools/{pip,test}-requires
 
 %build
-%{__python} setup.py build
+%{__python2} setup.py build
 
 %install
-PBR_VERSION=%{version}%{?version_milestone} %{__python} setup.py install -O1 --root %{buildroot}
+PBR_VERSION=%{version}%{?version_milestone} %{__python2} setup.py install -O1 --root %{buildroot}
 mkdir -p %{buildroot}%{_sysconfdir}/barbican
 mkdir -p %{buildroot}%{_localstatedir}/l{ib,og}/barbican
 mkdir -p %{buildroot}%{_bindir}
@@ -182,12 +193,7 @@ getent passwd barbican >/dev/null || \
 exit 0
 
 
-%clean
-rm -rf %{buildroot}
-
-
 %files -n openstack-barbican
-%defattr(-,root,root)
 %doc LICENSE
 %dir %{_sysconfdir}/barbican
 %dir %{_localstatedir}/log/barbican
@@ -203,7 +209,7 @@ rm -rf %{buildroot}
 %files -n python-barbican
 %doc LICENSE
 %defattr(-,barbican,barbican)
-%{python_sitelib}/*
+%{python2_sitelib}/*
 %dir %{_localstatedir}/lib/barbican
 
 %files -n openstack-barbican-worker
