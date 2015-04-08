@@ -24,7 +24,7 @@
 
 Name:    openstack-barbican
 Version: 2014.2
-Release: 2%{?version_milestone}%{?dist}
+Release: 3%{?version_milestone}%{?dist}
 Summary: OpenStack Barbican Key Manager
 
 Group:   Applications/System
@@ -74,7 +74,7 @@ and asymmetric keys, passphrases and binary data.
 
 
 %package -n python-barbican
-Summary: All python modules of Barbican.
+Summary: All python modules of Barbican
 Requires: python-alembic
 Requires: python-babel
 Requires: python-crypto
@@ -101,13 +101,23 @@ It is required by both the API(openstack-barbican) and
 worker(openstack-barbican-worker) packages.
 
 
+%package -n openstack-barbican-api
+Summary: Barbican Key Manager API daemon
+Requires: python-barbican
+
+%description -n openstack-barbican-api
+This package contains scripts to start a barbican api instance.
+
+
 %package -n openstack-barbican-worker
 Summary: Barbican Key Manager worker daemon
 Requires: python-barbican
+# Todo for now we rely on the -api package because of a shared config file
+Requires: openstack-barbican-api
 
 %description -n openstack-barbican-worker
 This package contains scripts to start a barbican worker
-on a worker node. It currently conflicts with the main package.
+on a worker node.
 
 
 %if "%{release_name}" != "juno"
@@ -197,14 +207,7 @@ exit 0
 %doc LICENSE
 %dir %{_sysconfdir}/barbican
 %dir %{_localstatedir}/log/barbican
-%{_sysconfdir}/logrotate.d/barbican-api
 %attr(0755,root,root) %{_bindir}/barbican-db-manage.py
-%config(noreplace) %{_sysconfdir}/barbican/*
-%if 0%{?el6}
-%config(noreplace) %{_sysconfdir}/init/barbican-api.conf
-%else
-%{_unitdir}/openstack-barbican-api.service
-%endif
 
 %files -n python-barbican
 %doc LICENSE
@@ -212,13 +215,24 @@ exit 0
 %{python2_sitelib}/*
 %dir %{_localstatedir}/lib/barbican
 
+%files -n openstack-barbican-api
+%config(noreplace) %{_sysconfdir}/logrotate.d/barbican-api
+%config(noreplace) %{_sysconfdir}/barbican/barbican-admin-paste.ini
+%config(noreplace) %{_sysconfdir}/barbican/barbican-api-paste.ini
+%config(noreplace) %{_sysconfdir}/barbican/barbican-api.conf
+%config(noreplace) %{_sysconfdir}/barbican/policy.json
+%if 0%{?el6}
+%config(noreplace) %{_sysconfdir}/init/barbican-api.conf
+%else
+%{_unitdir}/openstack-barbican-api.service
+%endif
+
 %files -n openstack-barbican-worker
 %doc LICENSE
 %defattr(-,root,root)
 %dir %{_sysconfdir}/barbican
 %dir %{_localstatedir}/log/barbican
 %attr(0755,root,root) %{_bindir}/barbican-worker.py
-%config(noreplace) %{_sysconfdir}/barbican/barbican-api.conf
 %if 0%{?el6}
 %config(noreplace) %{_sysconfdir}/init/barbican-worker.conf
 %else
@@ -236,7 +250,7 @@ exit 0
 %endif
 %endif
 
-%post -n openstack-barbican
+%post -n openstack-barbican-api
 # ensure that init system recognizes the service
 %if 0%{?el6}
 /sbin/initctl reload-configuration
@@ -265,7 +279,7 @@ exit 0
 %endif
 %endif
 
-%preun -n openstack-barbican
+%preun -n openstack-barbican-api
 %if 0%{?el6}
 if [ $1 -eq 0 ] ; then
     # This is package removal, not upgrade
@@ -297,7 +311,7 @@ fi
 %endif
 %endif
 
-%postun -n openstack-barbican
+%postun -n openstack-barbican-api
 %if 0%{?rhel} != 6
 # Restarting on EL6 is left as a task to the admin
 %systemd_postun_with_restart openstack-barbican-api.service
@@ -318,6 +332,19 @@ fi
 %endif
 
 %changelog
+* Tue Apr 07 2015 Greg Swift <greg.swift@rackspace.com> - 2014.2-3
+- Created -api subpackage
+- Made worker require -api rather than conflict with it due to shared config
+- Other small cleanup for review request
+
+* Wed Apr 01 2015 Greg Swift <greg.swift@rackspace.com> - 2014.2-2
+- use versioned python macros
+- wrap patches in a juno specific conditional to deprecate them
+- drop %clean and %defattr
+- change URL to openstack github rather than cloudkeep github
+
+* Mon Feb 09 2015 Greg Swift <greg.swift@rackspace.com> - 2014.2-1
+- Revamped for fedora packaging request
 
 * Thu Nov 13 2014 Abhishek Koneru <akoneru@redhat.com>
 - Initial spec file for building openstack-barbican packages -
