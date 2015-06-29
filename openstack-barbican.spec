@@ -24,7 +24,7 @@
 
 Name:    openstack-barbican
 Version: 2014.2
-Release: 3%{?version_milestone}%{?dist}
+Release: 4%{?version_milestone}%{?dist}
 Summary: OpenStack Barbican Key Manager
 
 Group:   Applications/System
@@ -39,20 +39,16 @@ Source2: openstack-barbican-worker.service
 Source3: openstack-barbican-keystone-listener.service
 %endif
 
-%if %{release_name} == juno
-# TODO: Submit PR to add these to upstream
-# patches_base=2014.2
-Patch0001: 0001-Remove-runtime-dependency-on-pbr.patch
-Patch0002: 0002-Removed-pyenv-references-in-barbican.sh.patch
-%endif
-
 BuildArch: noarch
 BuildRequires: python2-devel
 BuildRequires: python-setuptools
 BuildRequires: python-oslo-config
 BuildRequires: python-oslo-messaging
+BuildRequires: python-pbr
 
 Requires(pre): shadow-utils
+Requires: uwsgi
+Requires: uwsgi-plugin-python
 Requires: python-barbican
 %if 0%{?el6}
 Requires(post): chkconfig
@@ -133,17 +129,7 @@ listener daemon.
 %prep
 %setup -q -n barbican-%{version}%{?version_milestone}
 
-%if %{release_name} == juno
-%patch0001 -p1
-%patch0002 -p1
-%endif
-
 rm -rf barbican.egg-info
-
-echo %{version} > barbican/versioninfo
-sed -i '/setuptools_git/d; /setup_requires/d; /install_requires/d; /dependency_links/d' setup.py
-sed -i s/REDHATBARBICANVERSION/%{version}/ barbican/version.py
-sed -i s/REDHATBARBICANRELEASE/%{release}/ barbican/version.py
 
 # make doc build compatible with python-oslo-sphinx RPM
 sed -i 's/oslosphinx/oslo.sphinx/' doc/source/conf.py
@@ -156,13 +142,15 @@ rm -rf {test-,}requirements.txt tools/{pip,test}-requires
 %{__python2} setup.py build
 
 %install
-PBR_VERSION=%{version}%{?version_milestone} %{__python2} setup.py install -O1 --root %{buildroot}
+PBR_VERSION=%{version}%{?version_milestone} %{__python2} setup.py install --skip-build --root %{buildroot}
 mkdir -p %{buildroot}%{_sysconfdir}/barbican
+mkdir -p %{buildroot}%{_sysconfdir}/barbican/vassals
 mkdir -p %{buildroot}%{_localstatedir}/l{ib,og}/barbican
 mkdir -p %{buildroot}%{_bindir}
 
 install -m 644 etc/barbican/policy.json %{buildroot}%{_sysconfdir}/barbican/
 install -m 644 etc/barbican/barbican* %{buildroot}%{_sysconfdir}/barbican/
+install -m 644 etc/barbican/vassals/* %{buildroot}%{_sysconfdir}/barbican/vassals/
 install -m 755 bin/barbican-worker.py %{buildroot}%{_bindir}
 install -m 755 bin/barbican-db-manage.py %{buildroot}%{_bindir}
 %if "%{release_name}" != "juno"
@@ -212,7 +200,8 @@ exit 0
 %files -n python-barbican
 %doc LICENSE
 %defattr(-,barbican,barbican)
-%{python2_sitelib}/*
+%{python2_sitelib}/barbican
+%{python2_sitelib}/barbican-%{version}-py?.?.egg-info
 %dir %{_localstatedir}/lib/barbican
 
 %files -n openstack-barbican-api
@@ -221,6 +210,8 @@ exit 0
 %config(noreplace) %{_sysconfdir}/barbican/barbican-api-paste.ini
 %config(noreplace) %{_sysconfdir}/barbican/barbican-api.conf
 %config(noreplace) %{_sysconfdir}/barbican/policy.json
+%config(noreplace) %{_sysconfdir}/barbican/vassals/barbican-api.ini
+%config(noreplace) %{_sysconfdir}/barbican/vassals/barbican-admin.ini
 %if 0%{?el6}
 %config(noreplace) %{_sysconfdir}/init/barbican-api.conf
 %else
@@ -332,6 +323,12 @@ fi
 %endif
 
 %changelog
+* Tue Jun 30 2015 Michael McCune <msm@redhat.com> - 2014.2-4
+- removing pbr runtime replacement patch
+- removing patch for barbican.sh as this file is not used for runtime
+- adding vassals to installed files
+- changing python file inclusion to specifically mention barbican files
+
 * Tue Apr 07 2015 Greg Swift <greg.swift@rackspace.com> - 2014.2-3
 - Created -api subpackage
 - Made worker require -api rather than conflict with it due to shared config
