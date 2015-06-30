@@ -1,13 +1,16 @@
 [Unit]
 Description=Openstack Barbican API server
 After=syslog.target network.target
+Before=httpd.service
 
 [Service]
-Type=simple
-ExecStart=/usr/bin/barbican/barbican.sh start
-ExecStop=/usr/bin/barbican/barbican.sh stop
+Type=notify
+ExecStart=/usr/sbin/uwsgi --master --emperor /etc/barbican/vassals
 User=barbican
 Group=barbican
+KillSignal=SIGQUIT
+StandardError=syslog
+NotifyAccess=all
 
 [Install]
 WantedBy=multi-user.target
