@@ -82,7 +82,7 @@ uninstall_rpms: clean
 sdist:
 	mkdir -p ${SDISTDIR}
 	${GET_SDIST}
-	cp *.service *.patch ${SDISTDIR}/
+	cp *.service ${SDISTDIR}/
 
 prep_rpmbuild: prep_build
 	mkdir -p ${RPMBUILDDIR}
