@@ -20,7 +20,7 @@
 
 # Using the above we generate the macro for the Source URL
 %{?release_number: %define release_version %{release_name}-%{release_number}}
-%{?release_version: %define release_version %{release_name}}
+%{!?release_version: %define release_version %{release_name}}
 
 Name:    openstack-barbican
 Version: 2014.2
