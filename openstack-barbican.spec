@@ -153,7 +153,8 @@ install -m 644 etc/barbican/barbican* %{buildroot}%{_sysconfdir}/barbican/
 install -m 644 etc/barbican/vassals/* %{buildroot}%{_sysconfdir}/barbican/vassals/
 # Generally its not very clean to put scripts with their language extension into
 # the bin directories. Upstream has a bug to fix this, we are doing it manually for now
-# https://bugs.launchpad.net/barbican/+bug/1454587
+# discussed here https://bugs.launchpad.net/barbican/+bug/1454587
+# and fixed in https://review.openstack.org/#/c/193208/
 install -m 755 bin/barbican-worker.py %{buildroot}%{_bindir}/barbican-worker
 install -m 755 bin/barbican-db-manage.py %{buildroot}%{_bindir}/barbican-db-manage
 %if "%{release_name}" != "juno"
