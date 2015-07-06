@@ -24,7 +24,7 @@
 
 Name:    openstack-barbican
 Version: 2014.2
-Release: 4%{?version_milestone}%{?dist}
+Release: 5%{?version_milestone}%{?dist}
 Summary: OpenStack Barbican Key Manager
 
 Group:   Applications/System
@@ -151,10 +151,13 @@ mkdir -p %{buildroot}%{_bindir}
 install -m 644 etc/barbican/policy.json %{buildroot}%{_sysconfdir}/barbican/
 install -m 644 etc/barbican/barbican* %{buildroot}%{_sysconfdir}/barbican/
 install -m 644 etc/barbican/vassals/* %{buildroot}%{_sysconfdir}/barbican/vassals/
-install -m 755 bin/barbican-worker.py %{buildroot}%{_bindir}
-install -m 755 bin/barbican-db-manage.py %{buildroot}%{_bindir}
+# Generally its not very clean to put scripts with their language extension into
+# the bin directories. Upstream has a bug to fix this, we are doing it manually for now
+# https://bugs.launchpad.net/barbican/+bug/1454587
+install -m 755 bin/barbican-worker.py %{buildroot}%{_bindir}/barbican-worker
+install -m 755 bin/barbican-db-manage.py %{buildroot}%{_bindir}/barbican-db-manage
 %if "%{release_name}" != "juno"
-install -m 755 bin/barbican-keystone-listener.py %{buildroot}%{_bindir}
+install -m 755 bin/barbican-keystone-listener.py %{buildroot}%{_bindir}/baribcan-keystone-listener
 %endif
 
 # Remove the bash script since its more dev focused
@@ -171,9 +174,9 @@ install -m 644 etc/init/barbican-keystone-listener.conf %{buildroot}%{_sysconfdi
 %else
 # systemd services
 install -p -D -m 644 %{SOURCE1} %{buildroot}%{_unitdir}/openstack-barbican-api.service
-install -p -D -m 644 %{SOURCE1} %{buildroot}%{_unitdir}/openstack-barbican-worker.service
+install -p -D -m 644 %{SOURCE2} %{buildroot}%{_unitdir}/openstack-barbican-worker.service
 %if "%{release_name}" != "juno"
-install -p -D -m 644 %{SOURCE1} %{buildroot}%{_unitdir}/openstack-barbican-keystone-listener.service
+install -p -D -m 644 %{SOURCE3} %{buildroot}%{_unitdir}/openstack-barbican-keystone-listener.service
 %endif
 %endif
 
@@ -195,7 +198,7 @@ exit 0
 %doc LICENSE
 %dir %{_sysconfdir}/barbican
 %dir %{_localstatedir}/log/barbican
-%attr(0755,root,root) %{_bindir}/barbican-db-manage.py
+%attr(0755,root,root) %{_bindir}/barbican-db-manage
 
 %files -n python-barbican
 %doc LICENSE
@@ -223,7 +226,7 @@ exit 0
 %defattr(-,root,root)
 %dir %{_sysconfdir}/barbican
 %dir %{_localstatedir}/log/barbican
-%attr(0755,root,root) %{_bindir}/barbican-worker.py
+%attr(0755,root,root) %{_bindir}/barbican-worker
 %if 0%{?el6}
 %config(noreplace) %{_sysconfdir}/init/barbican-worker.conf
 %else
@@ -233,7 +236,7 @@ exit 0
 %if "%{release_name}" != "juno"
 %files -n openstack-barbican-keystone-listener
 %doc LICENSE
-%attr(0755,root,root) %{_bindir}/barbican-keystone-listener.py
+%attr(0755,root,root) %{_bindir}/barbican-keystone-listener
 %if 0%{?el6}
 %config(noreplace) %{_sysconfdir}/init/barbican-keystone-listener.conf
 %else
@@ -323,6 +326,9 @@ fi
 %endif
 
 %changelog
+* Mon Jul 06 2015 Greg Swift <greg.swift@rackspace.net> - 2014.2-5
+- Update to remove .py extension from bins, and ensure the service files match
+
 * Tue Jun 30 2015 Michael McCune <msm@redhat.com> - 2014.2-4
 - removing pbr runtime replacement patch
 - removing patch for barbican.sh as this file is not used for runtime
