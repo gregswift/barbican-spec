@@ -200,6 +200,10 @@ exit 0
 %dir %{_sysconfdir}/barbican
 %dir %{_localstatedir}/log/barbican
 %attr(0755,root,root) %{_bindir}/barbican-db-manage
+# Move the logrotate file to the shared package because everything currently uses
+# the /var/log/barbican-api.log file, and really a single logrotate is probably
+# good in the long run anyway, so this is likely the best package for it
+%config(noreplace) %{_sysconfdir}/logrotate.d/barbican-api
 
 %files -n python-barbican
 %doc LICENSE
@@ -209,7 +213,6 @@ exit 0
 %dir %{_localstatedir}/lib/barbican
 
 %files -n openstack-barbican-api
-%config(noreplace) %{_sysconfdir}/logrotate.d/barbican-api
 %config(noreplace) %{_sysconfdir}/barbican/barbican-admin-paste.ini
 %config(noreplace) %{_sysconfdir}/barbican/barbican-api-paste.ini
 %config(noreplace) %{_sysconfdir}/barbican/barbican-api.conf
@@ -329,6 +332,7 @@ fi
 %changelog
 * Mon Jul 06 2015 Greg Swift <greg.swift@rackspace.net> - 2014.2-5
 - Update to remove .py extension from bins, and ensure the service files match
+- Move logrotate file to shared base package
 
 * Tue Jun 30 2015 Michael McCune <msm@redhat.com> - 2014.2-4
 - removing pbr runtime replacement patch
