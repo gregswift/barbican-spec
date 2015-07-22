@@ -24,7 +24,7 @@
 
 Name:    openstack-barbican
 Version: 2014.2
-Release: 5%{?version_milestone}%{?dist}
+Release: 6%{?version_milestone}%{?dist}
 Summary: OpenStack Barbican Key Manager
 
 Group:   Applications/System
@@ -155,11 +155,9 @@ install -m 644 etc/barbican/vassals/* %{buildroot}%{_sysconfdir}/barbican/vassal
 # the bin directories. Upstream has a bug to fix this, we are doing it manually for now
 # discussed here https://bugs.launchpad.net/barbican/+bug/1454587
 # and fixed in https://review.openstack.org/#/c/193208/
-install -m 755 bin/barbican-worker.py %{buildroot}%{_bindir}/barbican-worker
-install -m 755 bin/barbican-db-manage.py %{buildroot}%{_bindir}/barbican-db-manage
-%if "%{release_name}" != "juno"
-install -m 755 bin/barbican-keystone-listener.py %{buildroot}%{_bindir}/baribcan-keystone-listener
-%endif
+for command in %{buildroot}%{_bindir}/barbican*.py; do
+  mv $command %{buildroot}%{_bindir}/$(basename $command .py)
+done
 
 # Remove the bash script since its more dev focused
 rm -f %{buildroot}%{_bindir}/barbican.sh
@@ -330,6 +328,9 @@ fi
 %endif
 
 %changelog
+* Wed Jul 22 2015 Greg Swift <greg.swift@rackspace.net> - 2014.2-6
+- Better implementation of removing .py extension from bins, that works
+
 * Mon Jul 06 2015 Greg Swift <greg.swift@rackspace.net> - 2014.2-5
 - Update to remove .py extension from bins, and ensure the service files match
 - Move logrotate file to shared base package
